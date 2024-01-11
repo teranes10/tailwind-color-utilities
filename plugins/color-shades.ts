@@ -2,33 +2,49 @@ import { Hex, HSL, CssFilter } from "../types/color";
 import Color from "../utils/color";
 import CssFilterReSolver from "../utils/css-filter-resolver";
 import plugin from "tailwindcss/plugin";
+import fs from "fs";
+import { objectToCss } from "../utils/postcss";
+import { deepEqual } from "../utils/compare";
 
+var _colors: Colors;
+
+type Options = { colors: Colors; out?: string; cssVariables?: boolean };
 export default plugin.withOptions(
-  (colors: Colors) => {
-    const colorVariables = flattenColorObject(
-      createColorObject(
-        colors,
-        (key, value) => `--${key}` + (value ? `-${value}` : "")
-      )
-    );
+  (options: Options) =>
+    async ({ addBase, addUtilities }) => {
+      if (options?.cssVariables) {
+        const colorVariables = flattenColorObject(
+          createColorObject(
+            options.colors,
+            (key, value) => `--${key}` + (value ? `-${value}` : "")
+          )
+        );
 
-    const filters = createColorFilterObject(
-      colors,
-      (key, value) => `.tint-${key}` + (value ? `-${value}` : "")
-    );
+        addBase({
+          ":root": colorVariables,
+        });
+      }
 
-    return ({ addBase, addUtilities }) => {
-      addBase({
-        ":root": colorVariables,
-      });
-      addUtilities(filters);
-    };
-  },
+      const filters = createColorFilterObject(
+        options.colors,
+        (key, value) => `.tint-${key}` + (value ? `-${value}` : "")
+      );
 
-  (colors: Colors) => {
+      if (options?.out) {
+        if (!(_colors && deepEqual(_colors, options.colors))) {
+          _colors = options.colors;
+          const css = await objectToCss(filters);
+          fs.writeFileSync(options.out, css);
+        }
+      } else {
+        addUtilities(filters);
+      }
+    },
+
+  (options: Options) => {
     const colorPalette = flattenColorObject(
       createColorObject(
-        colors,
+        options.colors,
         (key, value) => key + (value ? `-${value}` : "")
       )
     );

@@ -1,5 +1,4 @@
 import fs from "fs";
-import path from "path";
 import postcss from "postcss";
 import autoprefixer from "autoprefixer";
 import postcssNested from "postcss-nested";
@@ -7,21 +6,28 @@ import postcssJs from "postcss-js";
 
 const processor = postcss([autoprefixer, postcssNested]);
 
-export const readMultipleObjectCss = async (dirPath: string) => {
-  const files = fs.readdirSync(dirPath);
-  const result = [];
-
-  for (const fileName of files) {
-    const filePath = path.join(dirPath, fileName);
-    const css = await readObjectCss(filePath);
-    result.push(css);
-  }
-
-  return result;
+export const processCss = async (filePath: string) => {
+  const cssContent = fs.readFileSync(filePath, "utf-8");
+  const { root, css } = await processor.process(cssContent, { from: filePath });
+  return { root, css };
 };
 
-const readObjectCss = async (filePath: string) => {
-  const css = fs.readFileSync(filePath, "utf-8");
-  const { root } = await processor.process(css, { from: filePath });
+export const objectify = (root: postcss.Root) => {
   return postcssJs.objectify(root);
+};
+
+export const objectToCss = async (cssObject: any) => {
+  var cssString = "";
+
+  for (const selector in cssObject) {
+    cssString += `${selector} {\n`;
+
+    for (const prop in cssObject[selector]) {
+      cssString += `\t${prop}: ${cssObject[selector][prop]}\n`;
+    }
+
+    cssString += `}\n`;
+  }
+
+  return cssString;
 };

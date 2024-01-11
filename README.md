@@ -9,6 +9,7 @@ and automatically importing utilities and components.
 - Generate background tints. (CSS filter for adding a tint to images.)
 - Automatically import CSS files for Tailwind @layer utilities and components.
 
+ Tailwind CSS @layer classes may not work as expected in style-per-component libraries like Vue, Svelte, and React. These frameworks are processing every single <style> block independently. In such cases, one viable option is to generate and inject utilities and components using Tailwind plugins. [More](https://tailwindcss.com/docs/adding-custom-styles#layers-and-per-component-css)
 ## Installation
 
 To install the plugin, you can simply run the following command:
@@ -21,7 +22,7 @@ npm install -D tailwind-color-utilities
 yarn add -D tailwind-color-utilities
 ```
 
-## Usage
+## Setup
 
 After installing the plugin, include it in your tailwind.config.js:
 
@@ -33,16 +34,39 @@ module.exports = {
   //...
   plugins: [
     Colors({
-      primary: "#3bb77e",
-      secondary: "#fdc040",
-      grey: "#243d4e"
+      colors: {
+        primary: "#3bb77e",
+        secondary: "#fdc040",
+        grey: "#243d4e",
+        white: "#ffffff",
+      },
+      out: "./src/assets/css/output/tints.css", //optional
     }),
-    Utilities(<"utility css files directory">),  // Ex: "./assets/css/utilities"
-    Components(<"component css files directory">) //Ex: "./assets/css/components"
+    Utilities({
+      src: ["./src/assets/css/utilities/**/*.css"],
+      out: "./src/assets/css/output/utilities.css", //optional
+    }),
+    Components({
+      src: ["./src/layouts/**/*.css"],
+      out: "./src/assets/css/output/components.css", //optional
+    }),
  ]
 };
 ```
+### Note
+If you provide an output file path, the CSS code will be written directly to the specified file instead of being injected into the Tailwind CSS. This means that manual configuration is required to set the output file.
+```sh
+@import "tailwindcss/base";
 
+@import "tailwindcss/utilities";
+@import "./output/tints.css";
+@import "./output/utilities.css";
+
+@import "tailwindcss/components";
+@import "./output/components.css";
+
+```
+## Usage
 default color stops: 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950
 
 ```sh
