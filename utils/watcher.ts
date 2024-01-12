@@ -6,11 +6,12 @@ export const watchFiles = (
   src: string[],
   callback: (files: string[]) => void
 ) => {
-  chokidar.watch(src).on("all", (event, path) => {
-    if (!data[tag]) {
-      data[tag] = { timers: [], files: [] };
-    }
+  if (data[tag]) {
+    return;
+  }
 
+  data[tag] = { timers: [], files: [] };
+  chokidar.watch(src).on("all", (event, path) => {
     const { timers, files } = data[tag];
     if (event === "add") {
       const i = files.indexOf(path);
@@ -32,9 +33,10 @@ export const watchFiles = (
       clearTimeout(timer);
     }
 
+    timers.splice(0, timers.length);
     const timer = setTimeout(() => {
       callback(files);
-    }, 2500);
+    }, 150);
 
     timers.push(timer);
   });

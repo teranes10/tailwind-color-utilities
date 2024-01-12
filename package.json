@@ -1,6 +1,6 @@
 {
   "name": "tailwind-color-utilities",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Tailwind CSS plugin to generate color shades and tint.",
   "main": "index.ts",
   "scripts": {
